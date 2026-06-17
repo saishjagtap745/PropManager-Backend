@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PropManager — Premium Rental Management Suite</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Tabler Icons CSS CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ========================================== -->
+  <!-- AUTHENTICATION OVERLAY LAYER               -->
+  <!-- ========================================== -->
+  <div class="auth-container" id="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo"><i class="ti ti-building" aria-hidden="true"></i></div>
+        <h1 class="auth-title">PropManager</h1>
+        <p class="auth-subtitle">Rental Suite System Login</p>
+      </div>
+
+      <!-- Quick Role Selector for Evaluation/Mock Testing -->
+      <div class="role-select-box">
+        <div class="role-select-title">Quick Role Selector (Mock Mode)</div>
+        <div class="role-btn-group">
+          <button type="button" class="role-btn active" data-email="rajesh@example.com" title="Login as Property Manager">Manager</button>
+          <button type="button" class="role-btn" data-email="admin@example.com" title="Login as Admin">Admin</button>
+          <button type="button" class="role-btn" data-email="arjun@example.com" title="Login as Tenant">Tenant</button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" autocomplete="on">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Email Address</label>
+          <input type="email" id="login-email" class="form-control" placeholder="enter email..." value="rajesh@example.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••" value="password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="topbar-btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">Sign In</button>
+        <p style="font-size: 12px; text-align: center; margin-top: 16px; color: var(--text-secondary);">
+          Don't have an account? <a href="#" id="show-register" style="color: var(--primary); font-weight: 600; text-decoration: none;">Register here</a>
+        </p>
+      </form>
+
+      <!-- Register Form (Initially Hidden) -->
+      <form id="register-form" style="display: none;" autocomplete="on">
+        <div class="form-group">
+          <label class="form-label" for="register-name">Full Name</label>
+          <input type="text" id="register-name" class="form-control" placeholder="e.g. Rajesh Kumar" required autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-email">Email Address</label>
+          <input type="email" id="register-email" class="form-control" placeholder="name@example.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-password">Password</label>
+          <input type="password" id="register-password" class="form-control" placeholder="Minimum 6 characters" required autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="register-role">Register As</label>
+          <select id="register-role" class="form-control" required>
+            <option value="tenant">Tenant</option>
+            <option value="manager">Property Manager</option>
+          </select>
+        </div>
+        <button type="submit" class="topbar-btn primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 10px;">Create Account</button>
+        <p style="font-size: 12px; text-align: center; margin-top: 16px; color: var(--text-secondary);">
+          Already have an account? <a href="#" id="show-login" style="color: var(--primary); font-weight: 600; text-decoration: none;">Login here</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MAIN APPLICATION SHELL                     -->
+  <!-- ========================================== -->
+  <div class="prm-root" id="app-root" style="display: none;">
+    
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">
+          <div class="logo-icon"><i class="ti ti-building" aria-hidden="true"></i></div>
+          <div>
+            <div class="logo-text">PropManager</div>
+            <div class="logo-sub">Rental Suite</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-label">Overview</div>
+        <div class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
+        <div class="nav-item" data-view="properties"><i class="ti ti-building-estate" aria-hidden="true"></i> Properties</div>
+        <div class="nav-item staff-only" data-view="tenants"><i class="ti ti-users" aria-hidden="true"></i> Tenants</div>
+        <div class="nav-item admin-only" data-view="users" style="display: none;"><i class="ti ti-user-cog" aria-hidden="true"></i> Users</div>
+
+        <div class="nav-label">Finance</div>
+        <div class="nav-item" data-view="payments">
+          <i class="ti ti-receipt" aria-hidden="true"></i> Rent Ledger
+        </div>
+        <div class="nav-item" data-view="agreements"><i class="ti ti-file-text" aria-hidden="true"></i> Agreements</div>
+
+        <div class="nav-label">Settings</div>
+        <div class="nav-item" data-view="settings"><i class="ti ti-settings" aria-hidden="true"></i> Profile</div>
+      </div>
+
+      <!-- Sidebar Bottom Profile Chip -->
+      <div class="sidebar-bottom">
+        <div class="user-chip" id="logout-btn" title="Click to logout">
+          <div class="avatar" id="user-avatar-display">RK</div>
+          <div class="user-info">
+            <div class="user-name" id="user-name-display">Rajesh Kumar</div>
+            <div class="user-role" id="user-role-display">Property Owner</div>
+          </div>
+          <div style="font-size: 16px; color: var(--text-tertiary);"><i class="ti ti-logout"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN PANEL -->
+    <div class="main">
+      
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div class="topbar-title" id="topbar-title">Dashboard</div>
+        
+        <div class="search-box" id="global-search">
+          <i class="ti ti-search" aria-hidden="true"></i>
+          <input type="text" id="global-search-input" placeholder="Search properties...">
+        </div>
+        
+        <button class="topbar-btn primary" id="add-property-btn"><i class="ti ti-plus" aria-hidden="true"></i> Add property</button>
+      </div>
+
+      <!-- DYNAMIC ROUTED CONTENT AREA -->
+      <div class="content">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: DASHBOARD                          -->
+        <!-- ========================================== -->
+        <div class="view-section active" id="view-dashboard">
+          
+          <!-- SUB-VIEW A: ADMIN & MANAGER DASHBOARD -->
+          <div id="dashboard-admin-manager">
+            <!-- KPI ROW -->
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label"><i class="ti ti-building-estate" aria-hidden="true"></i> Total properties</div>
+                <div class="kpi-value" id="kpi-total-properties">24</div>
+                <div class="kpi-sub kpi-up"><i class="ti ti-arrow-up-right" aria-hidden="true"></i> 2 added this month</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><i class="ti ti-home-check" aria-hidden="true"></i> Occupancy</div>
+                <div class="kpi-value" id="kpi-occupancy">87%</div>
+                <div class="kpi-sub kpi-up"><i class="ti ti-arrow-up-right" aria-hidden="true"></i> Up from 81%</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><i class="ti ti-cash" aria-hidden="true"></i> Rent this month</div>
+                <div class="kpi-value" id="kpi-rent-collected">₹3.6L</div>
+                <div class="kpi-sub kpi-neutral"><i class="ti ti-clock" aria-hidden="true"></i> <span id="kpi-pending">₹48K</span> pending</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label"><i class="ti ti-tool" aria-hidden="true"></i> Open tickets</div>
+                <div class="kpi-value" id="kpi-open-tickets">6</div>
+                <div class="kpi-sub kpi-down"><i class="ti ti-alert-triangle" aria-hidden="true"></i> <span id="kpi-urgent-tickets">2 urgent</span></div>
+              </div>
+            </div>
+
+            <!-- TWO COLUMN PANELS -->
+            <div class="two-col">
+              <!-- LEFT COLUMN: PROPERTIES -->
+              <div>
+                <div class="section-header">
+                  <div class="section-title">Property Portfolio Summary</div>
+                  <div class="tab-row" id="prop-tabs">
+                    <div class="tab active" data-filter="all">All</div>
+                    <div class="tab" data-filter="occupied">Occupied</div>
+                    <div class="tab" data-filter="vacant">Vacant</div>
+                  </div>
+                </div>
+                <!-- Properties Mini List -->
+                <div class="list-wrapper" id="dashboard-properties-list">
+                  <!-- JS Dynamic Render -->
+                </div>
+              </div>
+
+              <!-- RIGHT COLUMN: DUE RENTS & TICKETS -->
+              <div class="right-panel">
+                <!-- Due Rents Card -->
+                <div class="mini-card">
+                  <div class="section-header" style="margin-bottom:12px">
+                    <div class="section-title">Rent Due Soon</div>
+                    <div class="section-link" onclick="switchView('payments')">Ledger <i class="ti ti-chevron-right" aria-hidden="true"></i></div>
+                  </div>
+                  <div id="due-rents-list">
+                    <!-- JS Dynamic Render -->
+                  </div>
+                </div>
+
+                <!-- Maintenance Card -->
+                <div class="mini-card">
+                  <div class="section-header" style="margin-bottom:12px">
+                    <div class="section-title">Maintenance Tickets</div>
+                    <div class="section-link">Open requests</div>
+                  </div>
+                  <div id="dashboard-maint-list">
+                    <!-- JS Dynamic Render -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOTTOM ROW: CHARTS & LOGS -->
+            <div class="bottom-row">
+              <!-- Monthly Rent collection trend chart -->
+              <div class="card">
+                <div class="section-header">
+                  <div class="section-title">Rent Collection Trend — 2026</div>
+                </div>
+                <div class="bar-chart">
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35; opacity:0.3;"></div></div>
+                    <div class="bar-lbl">Jan</div>
+                  </div>
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35; opacity:0.4;"></div></div>
+                    <div class="bar-lbl">Feb</div>
+                  </div>
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35; opacity:0.35;"></div></div>
+                    <div class="bar-lbl">Mar</div>
+                  </div>
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35; opacity:0.5;"></div></div>
+                    <div class="bar-lbl">Apr</div>
+                  </div>
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35; opacity:0.45;"></div></div>
+                    <div class="bar-lbl">May</div>
+                  </div>
+                  <div class="bar-col">
+                    <div class="bar-container"><div class="bar" style="height:0%; background:#FF6B35;"></div></div>
+                    <div class="bar-lbl" style="color:#FF6B35; font-weight:700;">Jun</div>
+                  </div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:10px;">
+                  <span style="font-size:12px; color:var(--text-secondary);">Avg ₹3.2L/mo</span>
+                  <span style="font-size:12px; color:var(--success); font-weight:600;">↑ 12% vs last year</span>
+                </div>
+              </div>
+
+              <!-- Activity logs -->
+              <div class="card">
+                <div class="section-header">
+                  <div class="section-title">System Activity Log</div>
+                </div>
+                <div id="recent-activity-list" style="display:flex; flex-direction:column; gap:6px;">
+                  <!-- JS Dynamic Render -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW B: TENANT PERSONAL DASHBOARD -->
+          <div id="dashboard-tenant" style="display: none;">
+            <div class="two-col">
+              <!-- Lease Terms Card -->
+              <div class="card">
+                <div class="section-header">
+                  <div class="section-title">My Lease Terms & Agreement</div>
+                </div>
+                <div id="tenant-lease-card">
+                  <!-- JS Dynamic Render -->
+                </div>
+              </div>
+
+              <!-- Payment Highlight Box -->
+              <div class="right-panel">
+                <div class="mini-card" id="tenant-payment-highlight" style="background: var(--bg-primary); border-top: 4px solid var(--primary);">
+                  <!-- JS Dynamic Render -->
+                </div>
+                
+                <!-- Contacts & Support Card -->
+                <div class="mini-card" id="tenant-contacts-card">
+                  <div class="section-header">
+                    <div class="section-title">Contacts & Support</div>
+                  </div>
+                  <div id="tenant-contacts-list" style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- JS Dynamic Render -->
+                  </div>
+                </div>
+                
+                <div class="mini-card">
+                  <div class="section-header">
+                    <div class="section-title">My Tickets</div>
+                  </div>
+                  <div id="tenant-maint-list">
+                    <!-- JS Dynamic Render -->
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rent Payment History Table -->
+            <div class="card">
+              <div class="section-header">
+                <div class="section-title">Lease Rent Payments Ledger</div>
+              </div>
+              <div class="table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Rent Period Due Date</th>
+                      <th>Amount Due</th>
+                      <th>Payment Status</th>
+                      <th>Settled Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tenant-payment-list">
+                    <!-- JS Dynamic Render -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: PROPERTIES (CRUD GRID)             -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-properties">
+          <div class="actions-bar">
+            <div class="filters-wrap">
+              <!-- Dynamic Filter could go here -->
+            </div>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;" id="properties-grid-container">
+            <!-- JS Dynamic Render -->
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 3: TENANTS (LIST TABLE)               -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-tenants">
+          <div class="actions-bar">
+            <div></div>
+            <div id="tenants-actions-wrap">
+              <!-- JS Render Add Button based on Role -->
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Tenant Name</th>
+                    <th>Email Address</th>
+                    <th>Phone Number</th>
+                    <th>Assigned Property</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tenants-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 4: AGREEMENTS (LIST TABLE)            -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-agreements">
+          <div class="actions-bar">
+            <div class="tab-row" id="agreements-tabs" style="margin-bottom: 0;">
+              <div class="tab active" data-tab="leases">Lease Agreements</div>
+              <div class="tab" data-tab="bookings">Booking Requests <span id="booking-requests-badge" class="nav-badge" style="display: none; position: static; margin-left: 6px; padding: 1px 6px;">0</span></div>
+            </div>
+            <div id="agreements-actions-wrap">
+              <!-- JS Render Add Button based on Role -->
+            </div>
+          </div>
+          
+          <!-- LEASE AGREEMENTS CONTAINER -->
+          <div class="card" id="lease-agreements-container">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Property Details</th>
+                    <th>Tenant Signee</th>
+                    <th>Lease Duration</th>
+                    <th>Rent Fee</th>
+                    <th>Outstanding Balance</th>
+                    <th>Agreement Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="agreements-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- BOOKING REQUESTS CONTAINER (HIDDEN BY DEFAULT) -->
+          <div class="card" id="booking-requests-container" style="display: none;">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Property</th>
+                    <th>Tenant Requested</th>
+                    <th>Requested Term</th>
+                    <th>Created Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="booking-requests-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 5: PAYMENTS (LEDGER TABLE)            -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-payments">
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Property Name</th>
+                    <th>Tenant Profile</th>
+                    <th>Rent Fee</th>
+                    <th>Due Date</th>
+                    <th>Collection Status</th>
+                    <th>Settled Date & Method</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="payments-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 6: SETTINGS (PROFILE CARD)            -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-settings">
+          <div id="settings-profile-details">
+            <!-- JS Dynamic Render -->
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 7: USERS (ADMIN USER MANAGEMENT)      -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-users">
+          <div class="actions-bar">
+            <div></div>
+            <div>
+              <button class="topbar-btn primary" id="btn-add-user"><i class="ti ti-plus"></i> Add User Account</button>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email Address</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODALS SECTION                             -->
+  <!-- ========================================== -->
+
+  <!-- Modal 1: Property CRUD Form -->
+  <div class="modal-overlay" id="modal-property">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="prop-modal-title">Register New Property</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-property">
+        <input type="hidden" id="prop-id-input">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="prop-title">Property Name / Title</label>
+            <input type="text" id="prop-title" class="form-control" placeholder="e.g. Sunrise Apartments B-204" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="prop-address">Address Location</label>
+              <input type="text" id="prop-address" class="form-control" placeholder="e.g. Koregaon Park" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="prop-city">City</label>
+              <input type="text" id="prop-city" class="form-control" placeholder="e.g. Pune" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="prop-type">Property Type</label>
+              <select id="prop-type" class="form-control" required>
+                <option value="flat">Flat / Apartment</option>
+                <option value="villa">House / Villa</option>
+                <option value="commercial">Commercial Space</option>
+                <option value="studio">Studio Room</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="prop-rent">Monthly Rent Fee (₹)</label>
+              <input type="number" id="prop-rent" class="form-control" placeholder="e.g. 25000" min="0" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="prop-bedrooms">Bedrooms</label>
+              <input type="number" id="prop-bedrooms" class="form-control" placeholder="e.g. 2" min="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="prop-bathrooms">Bathrooms</label>
+              <input type="number" id="prop-bathrooms" class="form-control" placeholder="e.g. 2" min="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="prop-status-select">Property Status</label>
+              <select id="prop-status-select" class="form-control" required>
+                <option value="vacant">Vacant</option>
+                <option value="occupied">Occupied</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="prop-desc">Description Notes</label>
+            <textarea id="prop-desc" class="form-control" rows="3" placeholder="Describe facilities, parking, amenities..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Tenant CRUD Form -->
+  <div class="modal-overlay" id="modal-tenant">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="tenant-modal-title">Onboard New Tenant</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-tenant">
+        <input type="hidden" id="tenant-id-input">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="tenant-name">Tenant Full Name</label>
+            <input type="text" id="tenant-name" class="form-control" placeholder="e.g. Arjun Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tenant-email">Email Address</label>
+            <input type="email" id="tenant-email" class="form-control" placeholder="arjun@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tenant-phone">Phone Number</label>
+            <input type="text" id="tenant-phone" class="form-control" placeholder="e.g. +91 98765 11111" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tenant-emergency">Emergency Contact Details</label>
+            <input type="text" id="tenant-emergency" class="form-control" placeholder="e.g. Amit Sharma: +91 98765 99991">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Onboard Tenant</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Lease Agreement Create Form -->
+  <div class="modal-overlay" id="modal-agreement">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Create Lease Agreement</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-agreement">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="agreement-property-id">Select Vacant Property</label>
+            <select id="agreement-property-id" class="form-control" required>
+              <!-- JS Dynamic list -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="agreement-tenant-id">Select Tenant Signee</label>
+            <select id="agreement-tenant-id" class="form-control" required>
+              <!-- JS Dynamic list -->
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="agreement-start-date">Lease Start Date</label>
+              <input type="date" id="agreement-start-date" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="agreement-end-date">Lease End Date</label>
+              <input type="date" id="agreement-end-date" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="agreement-rent">Negotiated Rent (₹/mo)</label>
+              <input type="number" id="agreement-rent" class="form-control" placeholder="e.g. 25000" min="0" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="agreement-deposit">Security Deposit Amount (₹)</label>
+              <input type="number" id="agreement-deposit" class="form-control" placeholder="e.g. 50000" min="0" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Activate Agreement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Record Rent Payment Form -->
+  <div class="modal-overlay" id="modal-payment">
+    <div class="modal" style="max-width: 400px">
+      <div class="modal-header">
+        <h2 class="modal-title">Collect Rent Payment</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-payment">
+        <input type="hidden" id="payment-id-input">
+        <div class="modal-body" style="text-align: center">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px">Collect Outstanding Amount</div>
+          <div style="font-family: var(--font-heading); font-size: 32px; font-weight: 700; color: var(--text-primary); margin-bottom: 20px" id="payment-amount-display">₹00,000</div>
+          
+          <div class="form-group" style="text-align: left">
+            <label class="form-label" for="payment-method">Payment Settled Method</label>
+            <select id="payment-method" class="form-control" required>
+              <option value="UPI">UPI Transfer (GPay / PhonePe)</option>
+              <option value="Net Banking">Net Banking / IMPS</option>
+              <option value="Cash">Cash Handover</option>
+              <option value="Cheque">Cheque Deposit</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Add User Account Form -->
+  <div class="modal-overlay" id="modal-user">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">Register New User Account</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-user">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="user-name">Full Name</label>
+            <input type="text" id="user-name" class="form-control" placeholder="e.g. John Doe" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="user-email">Email Address</label>
+            <input type="email" id="user-email" class="form-control" placeholder="e.g. john@example.com" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="user-phone">Phone Number</label>
+              <input type="text" id="user-phone" class="form-control" placeholder="e.g. +91 98765 77777">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="user-role">Role Tier</label>
+              <select id="user-role" class="form-control" required>
+                <option value="manager">Property Manager</option>
+                <option value="tenant">Tenant</option>
+                <option value="admin">Administrator</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Create User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: Book Property Form -->
+  <div class="modal-overlay" id="modal-booking">
+    <div class="modal" style="max-width: 400px">
+      <div class="modal-header">
+        <h2 class="modal-title">Book Property</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-booking">
+        <input type="hidden" id="booking-property-id">
+        <div class="modal-body">
+          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px; font-weight: 600;" id="booking-property-title">Property Title</div>
+          <div class="form-group">
+            <label class="form-label" for="booking-start-date">Lease Start Date</label>
+            <input type="date" id="booking-start-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="booking-end-date">Lease End Date</label>
+            <input type="date" id="booking-end-date" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Submit Booking Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification element -->
+  <div class="toast" id="toast">
+    <i class="ti ti-info-circle" aria-hidden="true" style="font-size: 16px;"></i>
+    <span id="toast-message">Notification message here</span>
+  </div>
+
+  <!-- Core App Controller Script (ES6 Module) -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

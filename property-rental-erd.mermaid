@@ -1,0 +1,65 @@
+erDiagram
+    USERS {
+        uuid id PK
+        string name
+        string email
+        string role "admin | manager | tenant"
+        string phone
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    PROPERTIES {
+        uuid id PK
+        string title
+        string description
+        string address
+        string city
+        string type "apartment | house | commercial | studio"
+        int bedrooms
+        int bathrooms
+        numeric rent_amount
+        string status "vacant | occupied | maintenance"
+        uuid manager_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    TENANTS {
+        uuid id PK
+        uuid user_id FK
+        string phone
+        string emergency_contact
+        string id_proof_url
+        timestamp created_at
+    }
+
+    AGREEMENTS {
+        uuid id PK
+        uuid property_id FK
+        uuid tenant_id FK
+        date start_date
+        date end_date
+        numeric rent_amount
+        numeric deposit_amount
+        string status "active | expired | terminated"
+        string document_url
+        timestamp created_at
+    }
+
+    PAYMENTS {
+        uuid id PK
+        uuid agreement_id FK
+        numeric amount
+        date due_date
+        date payment_date
+        string status "paid | pending | overdue"
+        string payment_method
+        timestamp created_at
+    }
+
+    USERS ||--o| TENANTS : "has tenant profile (if role=tenant)"
+    USERS ||--o{ PROPERTIES : "manages"
+    PROPERTIES ||--o{ AGREEMENTS : "is leased under"
+    TENANTS ||--o{ AGREEMENTS : "signs"
+    AGREEMENTS ||--o{ PAYMENTS : "generates"
