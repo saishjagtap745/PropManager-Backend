@@ -83,4 +83,17 @@ def update_user_profile(user_id: int, profileData: Dict[str, Any], db: Session =
             
     db.commit()
     db.refresh(user)
-    return user
+
+    user_payload = {
+        "id": user.id,
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "phone": user.phone,
+        "status": user.status
+    }
+    if user.role == 'tenant':
+        tenant = db.query(Tenant).filter(Tenant.user_id == user_id).first()
+        user_payload["emergency_contact"] = tenant.emergency_contact if tenant else ""
+        
+    return user_payload

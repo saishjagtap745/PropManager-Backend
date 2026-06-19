@@ -15,17 +15,8 @@ def get_tenants(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    if current_user.role == 'manager':
-        # Find properties managed by Rajesh/manager
-        managed_property_ids = [p.id for p in db.query(Property).filter(Property.owner_id == current_user.id).all()]
-        # Find active agreement tenant user IDs
-        active_tenant_user_ids = [a.user_id for a in db.query(Agreement).filter(
-            Agreement.property_id.in_(managed_property_ids),
-            Agreement.status == 'active'
-        ).all()]
-        return db.query(Tenant).filter(Tenant.user_id.in_(active_tenant_user_ids)).all()
-    else:
-        return db.query(Tenant).all()
+    return db.query(Tenant).all()
+
 
 
 @router.post("/")

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.database import get_db
-from backend.models import Agreement, Property, User, Payment
+from backend.models import Agreement, Property, User, Payment, Tenant
 from backend.dependencies import get_current_user
 from backend.schemas import AgreementCreate
 
@@ -35,8 +35,16 @@ def create_agreement(
             detail="Property is already occupied"
         )
 
+    tenant = db.query(Tenant).filter(Tenant.id == data.tenant_id).first()
+    if not tenant:
+        raise HTTPException(
+            status_code=404,
+            detail="Tenant profile not found"
+        )
+    tenant_user_id = tenant.user_id
+
     agreement = Agreement(
-        user_id=data.tenant_id,  # tenant's user ID
+        user_id=tenant_user_id,
         property_id=data.property_id,
         status=data.status or "active",
         start_date=data.start_date,
@@ -55,7 +63,7 @@ def create_agreement(
     
     # Create first rent payment
     first_payment = Payment(
-        user_id=data.tenant_id,
+        user_id=tenant_user_id,
         property_id=data.property_id,
         agreement_id=agreement.id,
         amount=data.rent_amount,
@@ -64,6 +72,7 @@ def create_agreement(
     )
     db.add(first_payment)
     db.commit()
+
 
     return {
         "message": "Agreement created successfully",
@@ -77,12 +86,32 @@ def get_agreements(
     current_user: User = Depends(get_current_user)
 ):
     if current_user.role == 'tenant':
-        return db.query(Agreement).filter(Agreement.user_id == current_user.id).all()
+        agreements = db.query(Agreement).filter(Agreement.user_id == current_user.id).all()
     elif current_user.role == 'manager':
         managed_property_ids = [p.id for p in db.query(Property).filter(Property.owner_id == current_user.id).all()]
-        return db.query(Agreement).filter(Agreement.property_id.in_(managed_property_ids)).all()
+        agreements = db.query(Agreement).filter(Agreement.property_id.in_(managed_property_ids)).all()
     else:
-        return db.query(Agreement).all()
+        agreements = db.query(Agreement).all()
+
+    res = []
+    for a in agreements:
+        tenant = db.query(Tenant).filter(Tenant.user_id == a.user_id).first()
+        payments = db.query(Payment).filter(Payment.agreement_id == a.id, Payment.status != 'paid').all()
+        outstanding_balance = sum([p.amount for p in payments])
+        res.append({
+            "id": a.id,
+            "property_id": a.property_id,
+            "tenant_id": tenant.id if tenant else None,
+            "user_id": a.user_id,
+            "status": a.status,
+            "start_date": a.start_date,
+            "end_date": a.end_date,
+            "rent_amount": a.rent_amount,
+            "deposit_amount": a.deposit_amount,
+            "document_url": a.document_url,
+            "outstanding_balance": outstanding_balance
+        })
+    return res
 
 
 @router.get("/{agreement_id}")
@@ -107,7 +136,24 @@ def get_agreement(
         if not property_item or property_item.owner_id != current_user.id:
             raise HTTPException(status_code=403, detail="Forbidden")
 
-    return agreement
+    tenant = db.query(Tenant).filter(Tenant.user_id == agreement.user_id).first()
+    payments = db.query(Payment).filter(Payment.agreement_id == agreement.id, Payment.status != 'paid').all()
+    outstanding_balance = sum([p.amount for p in payments])
+
+    return {
+        "id": agreement.id,
+        "property_id": agreement.property_id,
+        "tenant_id": tenant.id if tenant else None,
+        "user_id": agreement.user_id,
+        "status": agreement.status,
+        "start_date": agreement.start_date,
+        "end_date": agreement.end_date,
+        "rent_amount": agreement.rent_amount,
+        "deposit_amount": agreement.deposit_amount,
+        "document_url": agreement.document_url,
+        "outstanding_balance": outstanding_balance
+    }
+
 
 
 @router.delete("/{agreement_id}")
