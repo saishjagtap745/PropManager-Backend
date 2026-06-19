@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "PropManager API",
+    "_postman_id": "propmanager-collection-001",
+    "description": "Complete API testing collection for PropManager backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/register",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["auth", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"123456\",\n  \"role\": \"tenant\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/login",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"123456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Properties",
+      "item": [
+        {
+          "name": "Create Property",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/properties/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["properties"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Luxury Villa\",\n  \"address\": \"Pune\",\n  \"property_type\": \"villa\",\n  \"rent_amount\": 25000\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Properties",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "http://127.0.0.1:8000/properties/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["properties"]
+            }
+          }
+        },
+        {
+          "name": "Update Property",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/properties/1",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["properties", "1"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Villa\",\n  \"address\": \"Mumbai\",\n  \"property_type\": \"villa\",\n  \"rent_amount\": 30000\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Property",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/properties/1",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["properties", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments (Template)",
+      "item": [
+        {
+          "name": "Create Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/payments/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["payments"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"property_id\": 1,\n  \"amount\": 25000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agreements (Template)",
+      "item": [
+        {
+          "name": "Create Agreement",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/agreements/",
+              "protocol": "http",
+              "host": ["127", "0", "0", "1"],
+              "port": "8000",
+              "path": ["agreements"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"property_id\": 1,\n  \"status\": \"active\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
