@@ -37,7 +37,8 @@ const DOM = {
     agreements: document.getElementById('view-agreements'),
     payments: document.getElementById('view-payments'),
     settings: document.getElementById('view-settings'),
-    users: document.getElementById('view-users')
+    users: document.getElementById('view-users'),
+    maintenance: document.getElementById('view-maintenance')
   },
   
   // Navigation Menu Items
@@ -50,7 +51,8 @@ const DOM = {
     agreement: document.getElementById('modal-agreement'),
     payment: document.getElementById('modal-payment'),
     user: document.getElementById('modal-user'),
-    booking: document.getElementById('modal-booking')
+    booking: document.getElementById('modal-booking'),
+    maintenance: document.getElementById('modal-maintenance')
   },
   
   // Modal Forms
@@ -60,7 +62,8 @@ const DOM = {
     agreement: document.getElementById('form-agreement'),
     payment: document.getElementById('form-payment'),
     user: document.getElementById('form-user'),
-    booking: document.getElementById('form-booking')
+    booking: document.getElementById('form-booking'),
+    maintenance: document.getElementById('form-maintenance')
   }
 };
 
@@ -159,6 +162,7 @@ function setupEventListeners() {
   if (DOM.forms.payment) DOM.forms.payment.addEventListener('submit', handlePaymentSubmit);
   if (DOM.forms.user) DOM.forms.user.addEventListener('submit', handleUserSubmit);
   if (DOM.forms.booking) DOM.forms.booking.addEventListener('submit', handleBookingSubmit);
+  if (DOM.forms.maintenance) DOM.forms.maintenance.addEventListener('submit', handleMaintenanceSubmit);
 
   // Agreements tabs selector
   const agreementsTabs = document.getElementById('agreements-tabs');
@@ -348,6 +352,8 @@ async function switchView(viewName) {
     loadSettingsData();
   } else if (viewName === 'users') {
     await renderUsersList();
+  } else if (viewName === 'maintenance') {
+    await renderMaintenanceList();
   }
 }
 
@@ -1556,5 +1562,193 @@ async function updateBookingBadge() {
     }
   } catch (e) {
     console.error(e);
+  }
+}
+
+// -------------------------------------------------------------
+// VIEW 8: MAINTENANCE TICKETS CONTROLLER
+// -------------------------------------------------------------
+async function renderMaintenanceList() {
+  const tableBody = document.getElementById('maintenance-table-body');
+  if (!tableBody) return;
+  tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-tertiary)">Loading maintenance tickets...</td></tr>';
+
+  const addBtnDiv = document.getElementById('maint-actions-wrap');
+  if (addBtnDiv) {
+    // Only tenants submit tickets
+    addBtnDiv.innerHTML = currentUser.role === 'tenant' 
+      ? '<button class="topbar-btn primary" id="btn-add-maint"><i class="ti ti-plus"></i> Report Issue</button>' 
+      : '';
+    const addBtn = document.getElementById('btn-add-maint');
+    if (addBtn) addBtn.addEventListener('click', () => openMaintenanceModal());
+  }
+
+  try {
+    const list = await api.getMaintenanceTickets();
+    const properties = await api.getProperties();
+    tableBody.innerHTML = '';
+
+    if (list.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-secondary)">No maintenance tickets registered yet.</td></tr>';
+      return;
+    }
+
+    list.forEach(m => {
+      const prop = properties.find(p => p.id === m.property_id);
+      const row = document.createElement('tr');
+
+      let badgeClass = 'badge-pending';
+      if (m.status === 'urgent') badgeClass = 'badge-urgent';
+      else if (m.status === 'done') badgeClass = 'badge-done';
+
+      let actionButtons = '';
+      if (currentUser.role !== 'tenant') {
+        // Staff/Managers can edit status/notes and delete
+        actionButtons = `
+          <button class="topbar-btn btn-edit-maint" data-id="${m.id}" style="padding:4px 8px;font-size:11px;color:var(--primary);border-color:var(--primary-bg);margin-right:6px;"><i class="ti ti-edit"></i> Edit</button>
+          <button class="topbar-btn btn-delete-maint" data-id="${m.id}" style="padding:4px 8px;font-size:11px;color:var(--danger);border-color:var(--danger-bg);"><i class="ti ti-trash"></i> Delete</button>
+        `;
+      } else {
+        // Tenants can cancel/delete their pending ticket
+        if (m.status === 'pending') {
+          actionButtons = `
+            <button class="topbar-btn btn-delete-maint" data-id="${m.id}" style="padding:4px 8px;font-size:11px;color:var(--danger);border-color:var(--danger-bg);"><i class="ti ti-ban"></i> Cancel</button>
+          `;
+        } else {
+          actionButtons = '<span style="font-size:11px;color:var(--text-tertiary)">In Progress</span>';
+        }
+      }
+
+      row.innerHTML = `
+        <td style="font-weight:600;color:var(--text-primary)">${prop ? prop.title : 'Unknown Property'}</td>
+        <td>${m.description}</td>
+        <td>${formatDateMedium(m.reported_date)}</td>
+        <td>${m.notes || '—'}</td>
+        <td><span class="maint-badge ${badgeClass}">${m.status}</span></td>
+        <td>${actionButtons}</td>
+      `;
+
+      if (currentUser.role !== 'tenant') {
+        row.querySelector('.btn-edit-maint').addEventListener('click', () => openMaintenanceModal(m));
+      }
+      const delBtn = row.querySelector('.btn-delete-maint');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => handleMaintenanceDelete(m.id));
+      }
+
+      tableBody.appendChild(row);
+    });
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger)">Error: ${err.message}</td></tr>`;
+  }
+}
+
+async function openMaintenanceModal(ticket = null) {
+  const form = DOM.forms.maintenance;
+  form.reset();
+
+  const titleEl = document.getElementById('maint-modal-title');
+  const propGroup = document.getElementById('maint-prop-group');
+  const statusGroup = document.getElementById('maint-status-group');
+  const notesGroup = document.getElementById('maint-notes-group');
+  const descInput = document.getElementById('maint-description');
+  const propSelect = document.getElementById('maint-property-id');
+
+  // Clear modal inputs
+  document.getElementById('maint-id-input').value = ticket ? ticket.id : '';
+
+  if (ticket) {
+    // EDIT TICKET (Manager/Admin Only)
+    titleEl.textContent = 'Update Maintenance Ticket';
+    descInput.value = ticket.description;
+    descInput.disabled = true; // Description should be read-only for updates
+
+    if (currentUser.role !== 'tenant') {
+      propGroup.style.display = 'none';
+      statusGroup.style.display = 'block';
+      notesGroup.style.display = 'block';
+      document.getElementById('maint-status').value = ticket.status;
+      document.getElementById('maint-notes').value = ticket.notes || '';
+    }
+  } else {
+    // CREATE TICKET
+    titleEl.textContent = 'Report Maintenance Issue';
+    descInput.disabled = false;
+    descInput.value = '';
+
+    statusGroup.style.display = 'none';
+    notesGroup.style.display = 'none';
+
+    if (currentUser.role !== 'tenant') {
+      // Manager/Admin reporting on behalf of a property
+      propGroup.style.display = 'block';
+      propSelect.innerHTML = '<option value="">Loading properties...</option>';
+      try {
+        const props = await api.getProperties();
+        propSelect.innerHTML = '<option value="">Select a property...</option>';
+        props.forEach(p => {
+          propSelect.innerHTML += `<option value="${p.id}">${p.title}</option>`;
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      propGroup.style.display = 'none';
+    }
+  }
+
+  DOM.modals.maintenance.classList.add('active');
+}
+
+async function handleMaintenanceSubmit(e) {
+  e.preventDefault();
+  const ticketId = document.getElementById('maint-id-input').value;
+  const description = document.getElementById('maint-description').value;
+
+  try {
+    if (ticketId) {
+      // Update existing ticket (Manager Only)
+      const data = {
+        status: document.getElementById('maint-status').value,
+        notes: document.getElementById('maint-notes').value
+      };
+      await api.updateMaintenanceTicket(parseInt(ticketId), data);
+      showToast('Maintenance ticket updated successfully!', 'success');
+    } else {
+      // Create new ticket
+      const data = {
+        description: description
+      };
+      if (currentUser.role !== 'tenant') {
+        const propId = document.getElementById('maint-property-id').value;
+        if (!propId) {
+          showToast('Please select a property', 'error');
+          return;
+        }
+        data.property_id = parseInt(propId);
+      }
+      await api.createMaintenanceTicket(data);
+      showToast('Maintenance ticket submitted successfully!', 'success');
+    }
+    closeAllModals();
+    await renderMaintenanceList();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function handleMaintenanceDelete(ticketId) {
+  const confirmMsg = currentUser.role === 'tenant' 
+    ? 'Are you sure you want to cancel this maintenance ticket?' 
+    : 'Are you sure you want to delete this maintenance ticket permanently?';
+  
+  if (confirm(confirmMsg)) {
+    try {
+      await api.deleteMaintenanceTicket(ticketId);
+      showToast('Maintenance ticket removed successfully.', 'success');
+      await renderMaintenanceList();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   }
 }

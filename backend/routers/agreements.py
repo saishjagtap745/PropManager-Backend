@@ -76,7 +76,18 @@ def create_agreement(
 
     return {
         "message": "Agreement created successfully",
-        "agreement": agreement
+        "agreement": {
+            "id": agreement.id,
+            "property_id": agreement.property_id,
+            "tenant_id": data.tenant_id,
+            "user_id": agreement.user_id,
+            "status": agreement.status,
+            "start_date": agreement.start_date,
+            "end_date": agreement.end_date,
+            "rent_amount": agreement.rent_amount,
+            "deposit_amount": agreement.deposit_amount,
+            "document_url": agreement.document_url
+        }
     }
 
 

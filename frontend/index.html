@@ -102,6 +102,7 @@
         <div class="nav-item active" data-view="dashboard"><i class="ti ti-layout-dashboard" aria-hidden="true"></i> Dashboard</div>
         <div class="nav-item" data-view="properties"><i class="ti ti-building-estate" aria-hidden="true"></i> Properties</div>
         <div class="nav-item staff-only" data-view="tenants"><i class="ti ti-users" aria-hidden="true"></i> Tenants</div>
+        <div class="nav-item" data-view="maintenance"><i class="ti ti-tool" aria-hidden="true"></i> Maintenance</div>
         <div class="nav-item admin-only" data-view="users" style="display: none;"><i class="ti ti-user-cog" aria-hidden="true"></i> Users</div>
 
         <div class="nav-label">Finance</div>
@@ -507,6 +508,38 @@
           </div>
         </div>
 
+        <!-- ========================================== -->
+        <!-- VIEW 8: MAINTENANCE                        -->
+        <!-- ========================================== -->
+        <div class="view-section" id="view-maintenance">
+          <div class="actions-bar" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+            <div></div>
+            <div id="maint-actions-wrap">
+              <!-- JS Render Add Button based on Role -->
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Property Details</th>
+                    <th>Issue Description</th>
+                    <th>Reported Date</th>
+                    <th>Manager Notes</th>
+                    <th>Ticket Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="maintenance-table-body">
+                  <!-- JS Dynamic Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -766,6 +799,47 @@
         <div class="modal-footer">
           <button type="button" class="topbar-btn btn-cancel">Cancel</button>
           <button type="submit" class="topbar-btn primary">Submit Booking Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 7: Create/Edit Maintenance Ticket -->
+  <div class="modal-overlay" id="modal-maintenance">
+    <div class="modal" style="max-width: 450px;">
+      <div class="modal-header">
+        <h2 class="modal-title" id="maint-modal-title">Report Maintenance Issue</h2>
+        <button class="modal-close" type="button"><i class="ti ti-x"></i></button>
+      </div>
+      <form id="form-maintenance">
+        <input type="hidden" id="maint-id-input">
+        <div class="modal-body">
+          <div class="form-group staff-only" id="maint-prop-group">
+            <label class="form-label" for="maint-property-id">Property</label>
+            <select id="maint-property-id" class="form-control">
+              <!-- JS Dynamic -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="maint-description">Description of Issue</label>
+            <textarea id="maint-description" class="form-control" placeholder="e.g. Master bedroom toilet flush pipe leakage..." required rows="3"></textarea>
+          </div>
+          <div class="form-group staff-only" id="maint-status-group">
+            <label class="form-label" for="maint-status">Ticket Status</label>
+            <select id="maint-status" class="form-control">
+              <option value="pending">Pending</option>
+              <option value="urgent">Urgent</option>
+              <option value="done">Completed</option>
+            </select>
+          </div>
+          <div class="form-group staff-only" id="maint-notes-group">
+            <label class="form-label" for="maint-notes">Manager Notes / Update</label>
+            <input type="text" id="maint-notes" class="form-control" placeholder="e.g. Plumber assigned. Visiting tomorrow.">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn btn-cancel">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Submit Ticket</button>
         </div>
       </form>
     </div>

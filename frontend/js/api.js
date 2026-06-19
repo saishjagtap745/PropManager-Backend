@@ -1058,6 +1058,50 @@ export async function createMaintenanceTicket(ticketData) {
   }
 }
 
+export async function updateMaintenanceTicket(ticketId, ticketData) {
+  if (USE_MOCK) {
+    await sleep();
+    const db = getMockDB();
+    const ticket = db.maintenance.find(m => m.id === ticketId);
+    if (ticket) {
+      ticket.status = ticketData.status || ticket.status;
+      ticket.notes = ticketData.notes || ticket.notes;
+      saveMockDB(db);
+      return ticket;
+    }
+    throw new Error('Ticket not found');
+  } else {
+    const res = await fetch(`${API_BASE_URL}/maintenance/${ticketId}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(ticketData)
+    });
+    if (!res.ok) throw new Error('Failed to update maintenance ticket');
+    return await res.json();
+  }
+}
+
+export async function deleteMaintenanceTicket(ticketId) {
+  if (USE_MOCK) {
+    await sleep();
+    const db = getMockDB();
+    const index = db.maintenance.findIndex(m => m.id === ticketId);
+    if (index !== -1) {
+      db.maintenance.splice(index, 1);
+      saveMockDB(db);
+      return { success: true };
+    }
+    throw new Error('Ticket not found');
+  } else {
+    const res = await fetch(`${API_BASE_URL}/maintenance/${ticketId}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!res.ok) throw new Error('Failed to delete maintenance ticket');
+    return await res.json();
+  }
+}
+
 // -------------------------------------------------------------
 // DASHBOARD ANALYTICS API
 // -------------------------------------------------------------

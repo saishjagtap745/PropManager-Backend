@@ -79,3 +79,18 @@ def update_maintenance_ticket(
     db.commit()
     db.refresh(ticket)
     return ticket
+
+
+@router.delete("/{ticket_id}")
+def delete_maintenance_ticket(
+    ticket_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    ticket = db.query(MaintenanceTicket).filter(MaintenanceTicket.id == ticket_id).first()
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Maintenance ticket not found")
+
+    db.delete(ticket)
+    db.commit()
+    return {"message": "Ticket deleted successfully"}
