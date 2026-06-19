@@ -9,6 +9,19 @@ from backend.routers.properties import router as properties_router
 
 app = FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "https://prop-manager-backend.vercel.app",
+        "http://localhost:5500"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ----------------------
 # CREATE TABLES SAFELY
