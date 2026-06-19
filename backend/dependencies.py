@@ -11,7 +11,7 @@ import os
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = os.getenv("SECRET_KEY", "super-secret-key-fallback-12345")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 
 security = HTTPBearer()
