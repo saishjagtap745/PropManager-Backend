@@ -578,7 +578,7 @@ async function loadDashboardData() {
           
           row.innerHTML = `
             <td>${formatDateMedium(p.due_date)}</td>
-            <td>₹${p.amount.toLocaleString('en-IN')}</td>
+            <td>₹${(p.amount || 0).toLocaleString('en-IN')}</td>
             <td>${statusBadge}</td>
             <td>${p.payment_date ? formatDateMedium(p.payment_date) : '—'}</td>
           `;
@@ -671,7 +671,7 @@ async function renderDashboardProperties(filter = 'all') {
           </div>
         </div>
         <div class="prop-meta">
-          <div class="prop-rent">₹${p.rent_amount.toLocaleString('en-IN')}/mo</div>
+          <div class="prop-rent">₹${(p.rent_amount || 0).toLocaleString('en-IN')}/mo</div>
           ${badgeMarkup}
         </div>
       `;
@@ -744,7 +744,7 @@ async function renderPropertiesList(searchTerm = '') {
           <div style="display:flex;gap:12px;margin-top:12px;font-size:12px;color:var(--text-secondary);background:var(--bg-secondary);padding:8px 12px;border-radius:var(--radius-sm)">
             <span>Bedrooms: <strong>${p.bedrooms || 'N/A'}</strong></span>
             <span>Bathrooms: <strong>${p.bathrooms || 'N/A'}</strong></span>
-            <span>Rent: <strong>₹${p.rent_amount.toLocaleString('en-IN')}/mo</strong></span>
+            <span>Rent: <strong>₹${(p.rent_amount || 0).toLocaleString('en-IN')}/mo</strong></span>
           </div>
         </div>
         ${actionsHtml}
@@ -1026,7 +1026,7 @@ async function renderAgreementsList() {
         <td style="font-weight:600;color:var(--text-primary)">${prop ? prop.title : 'Deleted Property'}</td>
         <td>${tenant ? tenant.name : 'Unknown'}</td>
         <td>${formatDateMedium(a.start_date)} to ${formatDateMedium(a.end_date)}</td>
-        <td>₹${a.rent_amount.toLocaleString('en-IN')}/mo</td>
+        <td>₹${(a.rent_amount || 0).toLocaleString('en-IN')}/mo</td>
         <td style="font-weight:600;color:${a.outstanding_balance > 0 ? 'var(--danger-dot)' : 'var(--text-secondary)'}">
           ₹${(a.outstanding_balance || 0).toLocaleString('en-IN')}
         </td>
@@ -1065,7 +1065,7 @@ async function openAgreementModal() {
       propSelect.innerHTML = '<option value="">No vacant properties available</option>';
     } else {
       vacantProps.forEach(p => {
-        propSelect.innerHTML += `<option value="${p.id}">${p.title} (Rent: ₹${p.rent_amount.toLocaleString('en-IN')}/mo)</option>`;
+        propSelect.innerHTML += `<option value="${p.id}">${p.title} (Rent: ₹${(p.rent_amount || 0).toLocaleString('en-IN')}/mo)</option>`;
       });
     }
     
@@ -1190,7 +1190,7 @@ async function renderPaymentsList() {
       row.innerHTML = `
         <td style="font-weight:600;color:var(--text-primary)">${propName}</td>
         <td>${tenantName}</td>
-        <td>₹${p.amount.toLocaleString('en-IN')}</td>
+        <td>₹${(p.amount || 0).toLocaleString('en-IN')}</td>
         <td>${formatDateMedium(p.due_date)}</td>
         <td>${statusBadge}</td>
         <td>${p.payment_date ? `${formatDateMedium(p.payment_date)} (${p.payment_method || 'UPI'})` : '—'}</td>
@@ -1210,7 +1210,7 @@ async function renderPaymentsList() {
 
 function openPaymentModal(paymentId, amount) {
   document.getElementById('payment-id-input').value = paymentId;
-  document.getElementById('payment-amount-display').textContent = `₹${amount.toLocaleString('en-IN')}`;
+  document.getElementById('payment-amount-display').textContent = `₹${(amount || 0).toLocaleString('en-IN')}`;
   
   DOM.modals.payment.classList.add('active');
 }
