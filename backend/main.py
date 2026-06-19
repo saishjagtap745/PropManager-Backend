@@ -6,12 +6,13 @@ from backend.models import Base
 
 from backend.routers.auth import router as auth_router
 from backend.routers.properties import router as properties_router
+from backend.routers.users import router as users_router
+from backend.routers.payments import router as payments_router
+from backend.routers.agreements import router as agreements_router
 
 app = FastAPI()
 
-# ----------------------
-# CORS CONFIG
-# ----------------------
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -24,25 +25,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ----------------------
-# CREATE TABLES ON STARTUP
-# ----------------------
+# DB create tables
 @app.on_event("startup")
-def on_startup():
+def startup():
     Base.metadata.create_all(bind=engine)
 
-# ----------------------
-# ROUTERS (ONLY EXISTING)
-# ----------------------
+# ROUTES
 app.include_router(auth_router)
 app.include_router(properties_router)
+app.include_router(users_router)
+app.include_router(payments_router)
+app.include_router(agreements_router)
 
-# ----------------------
-# HEALTH CHECK
-# ----------------------
+# HOME
 @app.get("/")
 def home():
-    return {
-        "message": "PropManager API Running",
-        "status": "success"
-    }
+    return {"message": "PropManager API Running"}
