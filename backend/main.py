@@ -16,6 +16,19 @@ from backend.routers.dashboard import router as dashboard_router
 
 app = FastAPI()
 
+from fastapi.responses import JSONResponse
+import traceback
+
+@app.exception_handler(Exception)
+def debug_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": str(exc),
+            "traceback": "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+        }
+    )
+
 # CORS configurations
 app.add_middleware(
     CORSMiddleware,
