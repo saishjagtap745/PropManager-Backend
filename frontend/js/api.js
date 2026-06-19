@@ -1,6 +1,6 @@
 /* js/api.js - API client module with mock data fallback and scoping rules */
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://propmanager-backend-mxl4.onrender.com/';
 const USE_MOCK = true; // Set to false to connect to your live Python backend
 
 // Utility to simulate network delay when in mock mode
